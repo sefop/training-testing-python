@@ -1,0 +1,36 @@
+name: CI
+
+# Triggered on both push and pull_request so that:
+#   - push:         catches regressions on every branch, not just main,
+#                   so failures are visible as soon as code is pushed
+#   - pull_request: runs again at merge time to catch conflicts introduced
+#                   by other branches landing on main in the interim
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    # ubuntu-latest is the standard choice for open-source CI: it is faster
+    # to start and cheaper than macOS or Windows runners, and the repo has
+    # no platform-specific code that would require testing on other OSes.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pins Python to 3.12 to match the local development environment.
+      # Without pinning, GitHub may silently upgrade the runner's default
+      # Python and introduce "works locally, fails in CI" surprises.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # -v prints each test name as it runs, which makes CI logs readable
+      # when diagnosing a failure.
+      - name: Run tests
+        run: pytest -v
