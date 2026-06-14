@@ -15,44 +15,56 @@ import pytest
 from calculator import Calculator
 
 
-def test__calculator__add_two_positive_floats__returns_sum() -> None:
-    # Tracer bullet: verifies the simplest possible happy path end-to-end
-    # before testing edge cases. If this test fails, none of the others
-    # are meaningful — the basic mechanism is broken.
+def test__add__given_two_positive_floats__returns_their_sum() -> None:
+    # Tracer bullet — confirms the basic mechanism works before testing edge cases.
+    # ARRANGE
     calc = Calculator()
+
+    # ACT
     result = calc.add(1.0, 2.0)
+
+    # ASSERT
     assert result == 3.0
 
 
 @pytest.mark.parametrize("x", [0.0, 1.5, -3.7, 1e15])
-def test__calculator__add_identity__returns_x(x: float) -> None:
-    # The identity element of addition is 0: x + 0 = x for all x.
-    # We use math.isclose with rel_tol=1e-8 because floating-point
-    # arithmetic is not exact — two results that are mathematically
-    # equal may differ in the last few binary digits. rel_tol scales
-    # the tolerance with the magnitude of the numbers being compared,
-    # which is the right choice when operands can span many orders of
-    # magnitude (e.g., 1.5 vs. 1e15).
+def test__add__given_zero_as_second_operand__returns_first_operand(x: float) -> None:
+    # We use math.isclose with rel_tol=1e-8 because floating-point arithmetic is not
+    # exact — rel_tol scales with the magnitude of the numbers, which is correct when
+    # operands can span many orders of magnitude (e.g., 1.5 vs. 1e15).
+    # ARRANGE
     calc = Calculator()
-    assert math.isclose(calc.add(x, 0.0), x, rel_tol=1e-8)
+
+    # ACT
+    result = calc.add(x, 0.0)
+
+    # ASSERT
+    assert math.isclose(result, x, rel_tol=1e-8)
 
 
 @pytest.mark.parametrize("a,b", [(1.0, 2.0), (-1.5, 3.5), (1e10, -1e10), (0.0, 0.0)])
-def test__calculator__add_commutative__same_result_both_orders(a: float, b: float) -> None:
-    # Commutativity: a + b = b + a. This holds exactly for Python's native
-    # float addition, but we test it explicitly to document the contract.
-    # If add were ever reimplemented with a non-commutative algorithm
-    # (e.g., Kahan summation over a list), this test would catch a regression.
+def test__add__given_reversed_operands__returns_same_result(a: float, b: float) -> None:
+    # Tested explicitly to document the commutativity contract. If add were ever
+    # reimplemented with a non-commutative algorithm this test would catch the regression.
+
+    # ARRANGE
     calc = Calculator()
-    assert math.isclose(calc.add(a, b), calc.add(b, a), rel_tol=1e-8)
+
+    # ACT
+    forward = calc.add(a, b)
+    backward = calc.add(b, a)
+
+    # ASSERT
+    assert math.isclose(forward, backward, rel_tol=1e-8)
 
 
-def test__calculator__add_overflow__raises_overflow_error() -> None:
-    # 1.8e308 is near the maximum representable IEEE 754 double (~1.8 × 10^308).
-    # Adding two such values produces infinity under the default Python behavior.
-    # We assert that the implementation raises OverflowError rather than silently
-    # returning inf, because inf would propagate invisibly through further
-    # calculations and produce hard-to-diagnose errors downstream.
+def test__add__given_near_max_float_inputs__raises_overflow_error() -> None:
+    # We assert OverflowError rather than accepting silent inf, because inf would
+    # propagate invisibly through further calculations and produce hard-to-diagnose
+    # errors downstream. 1.8e308 is near the IEEE 754 double maximum (~1.8 × 10^308).
+    # ARRANGE
     calc = Calculator()
+
+    # ACT / ASSERT
     with pytest.raises(OverflowError):
         calc.add(1.8e308, 1.8e308)
