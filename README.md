@@ -20,11 +20,10 @@ source .venv/bin/activate  # On macOS/Linux
 ```bash
 pip install -r requirements.txt
 ```
----
 
-## Testing
-
-### Run all tests
+### 4. Run all tests
 ```bash
 pytest
 ```
+
+---
