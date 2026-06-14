@@ -1,3 +1,8 @@
+# This import makes all type annotations in this file lazy strings that are
+# never evaluated at runtime. This lets us use the modern `X | Y` union syntax
+# (PEP 604, Python 3.10+) without raising a TypeError on Python 3.7–3.9.
+from __future__ import annotations
+
 import math
 
 
@@ -10,21 +15,22 @@ class Calculator:
     makes tests simple: there is no setup state to prepare or tear down.
     """
 
-    def add(self, a: float, b: float) -> float:
-        """Return the sum of two floating-point numbers.
+    def add(self, a: int | float, b: int | float) -> float:
+        """Return the sum of two numbers as a float.
 
-        Satisfies identity (add(x, 0.0) ≈ x) and commutativity
+        Satisfies identity (add(x, 0) ≈ x) and commutativity
         (add(a, b) ≈ add(b, a)) within a relative tolerance of 1e-8.
 
         Args:
-            a: First operand. Must be a finite float.
-            b: Second operand. Must be a finite float.
+            a: First operand. Must be a finite int or float. bool is not accepted.
+            b: Second operand. Must be a finite int or float. bool is not accepted.
 
         Returns:
-            The arithmetic sum a + b as a finite float.
+            The arithmetic sum a + b as a finite float. int inputs are promoted
+            to float so the return type is always float regardless of input types.
 
         Raises:
-            TypeError: If either operand is not a float.
+            TypeError: If either operand is not an int or float (including bool).
             ValueError: If either operand is non-finite (inf or nan).
             OverflowError: If the result exceeds the range of IEEE 754
                 double-precision floats. Python does not raise on float
@@ -33,17 +39,27 @@ class Calculator:
                 a clear error instead of silently propagating a sentinel value
                 through further calculations.
         """
-        if not isinstance(a, float):
-            raise TypeError(f"a must be a float, got {type(a).__name__}")
-        if not isinstance(b, float):
-            raise TypeError(f"b must be a float, got {type(b).__name__}")
+        # bool is a subclass of int in Python, so isinstance(True, int) is True.
+        # We reject it explicitly before the int | float check because passing a
+        # boolean to an arithmetic method is almost certainly a bug.
+        if isinstance(a, bool):
+            raise TypeError(f"a must be int or float, got {type(a).__name__}")
+        if not isinstance(a, (int, float)):
+            raise TypeError(f"a must be int or float, got {type(a).__name__}")
+        if isinstance(b, bool):
+            raise TypeError(f"b must be int or float, got {type(b).__name__}")
+        if not isinstance(b, (int, float)):
+            raise TypeError(f"b must be int or float, got {type(b).__name__}")
         # inf and nan are valid IEEE 754 floats in Python, so isinstance alone
         # does not catch them — we must check finiteness explicitly.
+        # math.isfinite works on both int and float; all ints are finite.
         if not math.isfinite(a):
             raise ValueError(f"a must be finite, got {a}")
         if not math.isfinite(b):
             raise ValueError(f"b must be finite, got {b}")
-        result = a + b
+        # Explicit float() promotion ensures the return type is always float even
+        # when both operands are int (1 + 2 = 3 in Python, not 3.0).
+        result = float(a) + float(b)
         # Python's float arithmetic follows IEEE 754: adding two sufficiently
         # large values produces float('inf') rather than raising an exception.
         # We detect this explicitly because silently returning inf would violate
@@ -53,20 +69,21 @@ class Calculator:
             raise OverflowError(f"Result of {a} + {b} exceeds float range")
         return result
 
-    def divide(self, a: float, b: float) -> float:
-        """Return the quotient of two floating-point numbers.
+    def divide(self, a: int | float, b: int | float) -> float:
+        """Return the quotient of two numbers as a float.
 
         Args:
-            a: Dividend. Must be a finite float.
-            b: Divisor. Must be a finite, non-zero float.
+            a: Dividend. Must be a finite int or float. bool is not accepted.
+            b: Divisor. Must be a finite, non-zero int or float. bool is not accepted.
 
         Returns:
             The arithmetic quotient a / b as a finite float.
 
         Raises:
-            TypeError: If either operand is not a float.
+            TypeError: If either operand is not an int or float (including bool).
             ValueError: If either operand is non-finite (inf or nan).
             ZeroDivisionError: If b is zero.
             OverflowError: If the result exceeds the range of IEEE 754
+                double-precision floats.
         """
         pass
