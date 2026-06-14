@@ -10,6 +10,7 @@ HOW TO RUN:
     From the project root with the virtual environment active:
         pytest tests/test_calculator.py -v
 """
+import sys
 import pytest
 from calculator import Calculator
 
@@ -59,10 +60,12 @@ def test__add__given_reversed_operands__returns_same_result(a: float, b: float) 
 def test__add__given_near_max_float_inputs__raises_overflow_error() -> None:
     # We assert OverflowError rather than accepting silent inf, because inf would
     # propagate invisibly through further calculations and produce hard-to-diagnose
-    # errors downstream. 1.8e308 is near the IEEE 754 double maximum (~1.8 × 10^308).
+    # errors downstream. sys.float_info.max is the largest *finite* IEEE 754 double
+    # (~1.8 × 10^308); adding it to itself produces inf at the output, which add
+    # detects and re-raises as OverflowError.
     # ARRANGE
     calc = Calculator()
 
     # ACT / ASSERT
     with pytest.raises(OverflowError):
-        calc.add(1.8e308, 1.8e308)
+        calc.add(sys.float_info.max, sys.float_info.max)
