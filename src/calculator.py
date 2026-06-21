@@ -86,4 +86,6 @@ class Calculator:
             OverflowError: If the result exceeds the range of IEEE 754
                 double-precision floats.
         """
+
+        # This code is intentionally left blank as an exercise of TDD.
         pass
