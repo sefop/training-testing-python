@@ -29,7 +29,7 @@ source .venv/bin/activate  # On macOS/Linux
 pip install -r requirements.txt
 ```
 
-### 4. Run all tests
+### 4. Run all tests to verify the repo runs ok
 ```bash
 pytest
 ```
