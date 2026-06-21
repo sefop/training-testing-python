@@ -10,6 +10,13 @@ on:
   pull_request:
     branches: [main]
 
+# contents:read is the minimum needed to check out the repo.
+# code-quality:write lets actions/upload-code-coverage post the
+# coverage comment on pull requests via GitHub's Code Quality feature.
+permissions:
+  contents: read
+  code-quality: write
+
 jobs:
   test:
     # ubuntu-latest is the standard choice for open-source CI: it is faster
@@ -32,7 +39,18 @@ jobs:
 
       # --cov=src measures which lines inside src/ are executed during the test run.
       # --cov-report=term-missing prints a table in the CI log showing each file's
-      # coverage percentage and the specific line numbers not yet reached by any test,
-      # so you can spot untested code without downloading any extra report files.
+      # coverage percentage and the specific line numbers not yet reached by any test.
+      # --cov-report=xml writes coverage.xml in Cobertura format, which the upload
+      # step below sends to GitHub so it can render a diff comment on pull requests.
       - name: Run tests
-        run: pytest -v --cov=src --cov-report=term-missing
+        run: pytest -v --cov=src --cov-report=term-missing --cov-report=xml
+
+      # Skipped for PRs from forks: forked repos cannot write back to this repo,
+      # so the upload would fail with a permissions error on external contributions.
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-code-coverage@v1
+        with:
+          file: coverage.xml
+          language: Python
+          label: code-coverage/pytest
