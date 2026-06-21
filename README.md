@@ -17,7 +17,7 @@ git clone https://github.com/sefop/training-testing-python.git
 cd training-testing-python
 ```
 
-### 2. Create a virtual environment
+### 2. Create a virtual environment with python 3.12
 ```bash
 py -3.12 -m venv .venv
 .venv\Scripts\activate  # On Windows
