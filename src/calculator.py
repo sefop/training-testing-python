@@ -87,5 +87,35 @@ class Calculator:
                 double-precision floats.
         """
 
-        # This code is intentionally left blank as an exercise of TDD.
-        pass
+        # bool is a subclass of int in Python, so isinstance(True, int) is True.
+        # We reject it explicitly before the int | float check because passing a
+        # boolean to an arithmetic method is almost certainly a bug.
+        if isinstance(a, bool):
+            raise TypeError(f"a must be int or float, got {type(a).__name__}")
+        if not isinstance(a, (int, float)):
+            raise TypeError(f"a must be int or float, got {type(a).__name__}")
+        if isinstance(b, bool):
+            raise TypeError(f"b must be int or float, got {type(b).__name__}")
+        if not isinstance(b, (int, float)):
+            raise TypeError(f"b must be int or float, got {type(b).__name__}")
+        # inf and nan are valid IEEE 754 floats in Python, so isinstance alone
+        # does not catch them — we must check finiteness explicitly.
+        # math.isfinite works on both int and float; all ints are finite.
+        if not math.isfinite(a):
+            raise ValueError(f"a must be finite, got {a}")
+        if not math.isfinite(b):
+            raise ValueError(f"b must be finite, got {b}")
+        # Checked after type and finiteness guards so the error message is unambiguous:
+        # a zero b that reaches this point is a genuine zero divisor, not a type mistake.
+        if b == 0:
+            raise ZeroDivisionError("b must be non-zero")
+        # Explicit float() promotion ensures the return type is always float even
+        # when both operands are int (4 / 2 = 2 in Python, not 2.0).
+        result = float(a) / float(b)
+        # Python's float arithmetic follows IEEE 754: dividing a very large value
+        # by a very small one can produce float('inf') rather than raising.
+        # We detect this explicitly because silently returning inf would violate
+        # the contract that divide always returns a *finite* number.
+        if math.isinf(result):
+            raise OverflowError(f"Result of {a} / {b} exceeds float range")
+        return result

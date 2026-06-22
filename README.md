@@ -59,4 +59,4 @@ pytest --cov=src --cov-report=html
 
 ## Exercises
 
-Check out the exercises in the folder [exercises](exercises) for detailed instructions.
+Check out the [exercises](exercises) folder for detailed instructions.
