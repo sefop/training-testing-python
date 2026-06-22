@@ -18,8 +18,10 @@ class Calculator:
     def add(self, a: int | float, b: int | float) -> float:
         """Return the sum of two numbers as a float.
 
-        Satisfies identity (add(x, 0) ≈ x) and commutativity
-        (add(a, b) ≈ add(b, a)) within a relative tolerance of 1e-8.
+        Satisfies:
+        - Identity: add(x, 0) = x
+        - Commutativity: add(a, b) = add(b, a)
+        (within a relative tolerance of 1e-8).
 
         Args:
             a: First operand. Must be a finite int or float. bool is not accepted.
@@ -71,6 +73,11 @@ class Calculator:
 
     def divide(self, a: int | float, b: int | float) -> float:
         """Return the quotient of two numbers as a float.
+
+        Satisfies:
+        - Identity: divide(a, 1) = a
+        - Multiplicative Inverse Property: divide(a, a) = 1.
+        (within a relative tolerance of 1e-8).
 
         Args:
             a: Dividend. Must be a finite int or float. bool is not accepted.
