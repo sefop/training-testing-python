@@ -8,7 +8,6 @@ from calculator import Calculator
 
 
 def test__add__given_two_integers__returns_their_sum() -> None:
-    # Tracer bullet — confirms the basic mechanism works before testing edge cases.
     # ARRANGE
     calc = Calculator()
 
