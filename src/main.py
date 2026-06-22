@@ -13,15 +13,13 @@ def main() -> None:
     its methods with numeric inputs.
     """
     # Initialize a stateless Calculator instance.
-    calc = Calculator()
+    calculator = Calculator()
 
     # Demonstrate addition.
-    result_add = calc.add(10, 5)
-    print(f"10 + 5 = {result_add}")
+    print(f"10 + 5 = {calculator.add(10, 5)}")
 
     # Demonstrate division.
-    result_divide = calc.divide(10, 5)
-    print(f"10 / 5 = {result_divide}")
+    print(f"10 / 6 = {calculator.divide(10, 6)}")
 
 
 if __name__ == "__main__":
