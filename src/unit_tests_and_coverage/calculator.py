@@ -13,6 +13,14 @@ class Calculator:
     receives all the values it needs as arguments and returns a result.
     Stateless design makes objects trivially safe to share and reuse, and
     makes tests simple: there is no setup state to prepare or tear down.
+
+    The operands are annotated as int | float. This is where the Python version
+    differs most from its Java sibling: type hints are not enforced at runtime,
+    so a call such as add("1", 2.0) or add(True, 2.0) would run unless the
+    method rejects it itself, and an int result would stay an int unless the
+    method promotes it. In Java the compiler does both jobs, so the Java version
+    of this exercise has no tests for invalid types or int promotion. Here those
+    behaviors are part of the contract, and they are tested.
     """
 
     def add(self, a: int | float, b: int | float) -> float:
