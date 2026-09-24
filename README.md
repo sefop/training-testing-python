@@ -4,6 +4,10 @@
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/release/python-3120/)
 [![License](https://img.shields.io/github/license/sefop/training-testing-python)](LICENSE)
 
+Hands-on exercises on software engineering, tailored for scientists. This is the Python sibling of
+[sefop-training-java](https://github.com/sefop/sefop-training-java).
+The theory is in the [Book](https://github.com/sefop/sefop-training-hub/tree/main/book/).
+
 ## Installation
 
 ### 1. Clone the repository
