@@ -1,13 +1,10 @@
-# TDD EXERCISE
+# Exercise 2: test-driven development. See README.md in this folder for the instructions.
 #
-# This file has no implementation on purpose. Implement LinearExpression
-# below using red-green-refactor:
-#   1. Write ONE failing test for a single requirement from the docstring.
-#   2. Write the minimum code to make it pass.
-#   3. Refactor if needed, keeping all tests green.
-#   4. Repeat for the next requirement.
-# Method names, parameters, and internal design are entirely up to you —
-# only the observable behavior described below is required.
+# The scalar part of LinearExpression is already built, test-first, exactly as in the
+# book's worked example: an empty expression, an expression with a scalar, and
+# add_scalar. Everything about variables is yours to build, one red-green-refactor
+# cycle at a time. For the new methods, names, parameters and internal design are up
+# to you: only the observable behavior described in the docstring is required.
 
 
 class LinearExpression:
@@ -16,6 +13,14 @@ class LinearExpression:
 
     Where a0 is a scalar, a1,a2,...,an are non-zero coefficients, and x1..xn are
     non-empty variable names.
+
+    Types: the scalar and the coefficients are floats; each variable is identified
+    by its name, a str.
+
+    Examples:
+    - 0            -> scalar 0.0, no variables.
+    - 1 + 2x       -> scalar 1.0, coefficient 2.0 for "x".
+    - -1 - x + 2y  -> scalar -1.0, coefficient -1.0 for "x", coefficient 2.0 for "y".
 
     Construction
     ------------
@@ -71,4 +76,13 @@ class LinearExpression:
     - All these operations are read-only, thus, can't modify the expression.
     """
 
-    pass
+    def __init__(self, scalar: float = 0.0) -> None:
+        self._scalar = scalar
+
+    def scalar(self) -> float:
+        """Returns the scalar part (a0) of the expression."""
+        return self._scalar
+
+    def add_scalar(self, value: float) -> None:
+        """Adds value to the scalar part of the expression."""
+        self._scalar += value

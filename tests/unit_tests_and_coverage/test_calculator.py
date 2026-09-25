@@ -38,13 +38,13 @@ RELATIVE_TOLERANCE: float = 1e-8
 
 
 def test__add__given_two_numbers__returns_their_sum() -> None:
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT
-    result = calc.add(1.0, 2.0)
+    # Act
+    result = calculator.add(1.0, 2.0)
 
-    # ASSERT
+    # Assert
     # Floats are compared with a tolerance, never with exact equality, because
     # most decimal numbers have no exact binary representation (0.1 + 0.2 is
     # not exactly 0.3). rel= makes the tolerance scale with the expected value.
@@ -57,13 +57,13 @@ def test__add__given_zero_as_second_operand__returns_first_operand(x: float) -> 
     # magnitude: an absolute tolerance of 1e-8 would be far too strict for 1e15
     # and meaningless near 1e-10.
 
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT
-    result = calc.add(x, 0.0)
+    # Act
+    result = calculator.add(x, 0.0)
 
-    # ASSERT
+    # Assert
     assert result == pytest.approx(x, rel=RELATIVE_TOLERANCE)
 
 
@@ -73,14 +73,16 @@ def test__add__given_reversed_operands__returns_same_result(a: float, b: float) 
     # reimplemented with a non-commutative algorithm, this test would catch the
     # regression.
 
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT
-    forward = calc.add(a, b)
-    backward = calc.add(b, a)
+    # Act
+    # The one place where Act calls the unit twice: commutativity is a relation
+    # between two calls, so a single call has nothing to compare against.
+    forward = calculator.add(a, b)
+    backward = calculator.add(b, a)
 
-    # ASSERT
+    # Assert
     assert forward == pytest.approx(backward, rel=RELATIVE_TOLERANCE)
 
 
@@ -95,14 +97,21 @@ def test__add__given_invalid_operand_type__raises_type_error(a: object, b: objec
     # included on purpose, because True is an int in Python and would otherwise
     # slip through as 1.
 
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT / ASSERT
-    # The call must be inside the `with` block: pytest.raises only catches
-    # exceptions raised while the block runs.
-    with pytest.raises(TypeError):
-        calc.add(a, b)  # type: ignore[arg-type]
+    # Act
+    # A call that raises never returns a result, so we capture the exception
+    # instead. pytest.raises(Exception) catches any exception raised inside the
+    # `with` block and stores it in `error`; asking for Exception, the parent of
+    # every ordinary exception, means Act only records what happened. Checking
+    # WHICH exception it was is left to Assert. The call must be inside the
+    # `with` block: pytest.raises only catches exceptions raised while it runs.
+    with pytest.raises(Exception) as error:
+        calculator.add(a, b)  # type: ignore[arg-type]
+
+    # Assert
+    assert isinstance(error.value, TypeError)
 
 
 @pytest.mark.parametrize("a,b,expected", [
@@ -115,13 +124,13 @@ def test__add__given_int_operand__returns_float(
     # Python-only test: Java widens int to double automatically. The type check
     # is needed on top of approx, because approx(3.0) also accepts the int 3.
 
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT
-    result = calc.add(a, b)
+    # Act
+    result = calculator.add(a, b)
 
-    # ASSERT
+    # Assert
     assert result == pytest.approx(expected, rel=RELATIVE_TOLERANCE)
     assert isinstance(result, float)
 
@@ -131,12 +140,15 @@ def test__add__given_int_operand__returns_float(
     (1.0, float("nan")),  # nan as second operand
 ])
 def test__add__given_non_finite_operand__raises_value_error(a: float, b: float) -> None:
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT / ASSERT
-    with pytest.raises(ValueError):
-        calc.add(a, b)
+    # Act
+    with pytest.raises(Exception) as error:
+        calculator.add(a, b)
+
+    # Assert
+    assert isinstance(error.value, ValueError)
 
 
 def test__add__given_near_max_float_inputs__raises_overflow_error() -> None:
@@ -145,12 +157,15 @@ def test__add__given_near_max_float_inputs__raises_overflow_error() -> None:
     # hard-to-diagnose errors downstream. sys.float_info.max is the largest
     # finite float (~1.8 x 10^308); adding it to itself overflows.
 
-    # ARRANGE
-    calc = Calculator()
+    # Arrange
+    calculator = Calculator()
 
-    # ACT / ASSERT
-    with pytest.raises(OverflowError):
-        calc.add(sys.float_info.max, sys.float_info.max)
+    # Act
+    with pytest.raises(Exception) as error:
+        calculator.add(sys.float_info.max, sys.float_info.max)
+
+    # Assert
+    assert isinstance(error.value, OverflowError)
 
 
 # =============================================================================
@@ -166,71 +181,79 @@ def test__add__given_near_max_float_inputs__raises_overflow_error() -> None:
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_two_valid_numbers__returns_their_quotient() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT
+    # Act
 
-    # ASSERT
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_dividend_and_one__returns_dividend() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT
+    # Act
 
-    # ASSERT
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_same_numbers__returns_one() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT
+    # Act
 
-    # ASSERT
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_int_operands__returns_float() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT
+    # Act
 
-    # ASSERT
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_invalid_types__raises_type_error() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT / ASSERT
+    # Act
+
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_non_finite_operand__raises_value_error() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT / ASSERT
+    # Act
+
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_zero_divisor__raises_zero_division_error() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT / ASSERT
+    # Act
+
+    # Assert
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
 def test__divide__given_inputs_that_overflow__raises_overflow_error() -> None:
-    # ARRANGE
+    # Arrange
 
-    # ACT / ASSERT
+    # Act
+
+    # Assert
     pass

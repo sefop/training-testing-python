@@ -41,22 +41,28 @@ or a `bool` itself, and has to turn an `int` result into a `float` itself.
 | Run one test with several inputs | `@pytest.mark.parametrize` | `@ParameterizedTest` + `@ValueSource` / `@CsvSource` |
 | Skip a test for now | `@pytest.mark.skip(reason="...")` | `@Disabled("reason")` |
 | Compare floats | `result == pytest.approx(expected, rel=1e-8)` | `assertEquals(expected, actual, delta)` |
-| Expect an exception | `with pytest.raises(SomeError):` | `assertThrows(SomeException.class, () -> ...)` |
+| Capture an exception | `with pytest.raises(Exception) as error:` | `Throwable thrown = assertThrows(Throwable.class, () -> ...)` |
+| Check its type | `assert isinstance(error.value, SomeError)` | `assertInstanceOf(SomeException.class, thrown)` |
 
 Two things catch people out:
 
 - **`pytest.approx` has a default tolerance.** `pytest.approx(3.0)` accepts anything within a relative
   1e-6 of 3.0. The contract of `Calculator` promises 1e-8, so the tests pass `rel=RELATIVE_TOLERANCE`
   explicitly. Never compare floats with a bare `==`: `0.1 + 0.2 == 0.3` is `False`.
-- **The call must be inside the `with` block.** Write
+- **Exception tests keep Arrange, Act and Assert apart too.** A call that raises never returns a result, so
+  Act captures the exception and Assert checks its type:
 
   ```python
-  with pytest.raises(ZeroDivisionError):
-      calc.divide(1.0, 0.0)
+  # Act
+  with pytest.raises(Exception) as error:
+      calculator.divide(1.0, 0.0)
+
+  # Assert
+  assert isinstance(error.value, ZeroDivisionError)
   ```
 
-  If the call is on a line before the `with`, it runs before pytest gets a chance to catch the exception,
-  and the test crashes instead of passing.
+  The call must be inside the `with` block. If it's on a line before the `with`, it runs before pytest gets
+  a chance to catch the exception, and the test crashes instead of passing.
 
 ## Running the tests
 

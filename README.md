@@ -36,5 +36,6 @@ pytest
 ## Exercises
 
 1. Unit tests and code coverage: [`src/unit_tests_and_coverage`](src/unit_tests_and_coverage/README.md)
+2. Test-driven development: [`src/test_driven_development`](src/test_driven_development/README.md)
 
 Check out the [exercises](exercises) folder for the instructions of the other exercises.
