@@ -1,7 +1,7 @@
 """Unit tests for NightlyPlanner.
 
-The behavior of NightlyPlanner is a call to another system: it pages a person.
-It returns nothing, so these tests replace the pager with a mock, a stand-in
+The behavior of NightlyPlanner is a call to another system: it notifies a person.
+It returns nothing, so these tests replace the notifier with a mock, a stand-in
 that records every call it receives, and assert on those calls.
 
 The file has two parts:
@@ -19,16 +19,16 @@ from unittest.mock import Mock
 
 import pytest
 
-from mocks.nightly_planner import NightlyPlanner, Pager, SolveResult, SolveStatus
+from mocks.nightly_planner import NightlyPlanner, Notifier, SolveResult, SolveStatus
 
 
-class RecordingPager(Pager):
+class RecordingNotifier(Notifier):
     """A mock written by hand: it sends nothing and records every message."""
 
     def __init__(self) -> None:
         self.messages: list[str] = []
 
-    def page(self, message: str) -> None:
+    def notify(self, message: str) -> None:
         self.messages.append(message)
 
 
@@ -37,49 +37,49 @@ class RecordingPager(Pager):
 # =============================================================================
 
 
-def test__review__given_an_infeasible_plan__pages_once_with_the_instance() -> None:
+def test__review__given_an_infeasible_plan__notifies_once_with_the_instance() -> None:
     # Arrange
-    pager = RecordingPager()
-    planner = NightlyPlanner(pager)
+    notifier = RecordingNotifier()
+    planner = NightlyPlanner(notifier)
     result = SolveResult(instance_id="2026-09-26", status=SolveStatus.INFEASIBLE)
 
     # Act
     planner.review(result)
 
     # Assert
-    assert pager.messages == ["Instance 2026-09-26: no feasible plan exists."]
+    assert notifier.messages == ["Instance 2026-09-26: no feasible plan exists."]
 
 
-def test__review__given_a_feasible_plan__sends_no_page() -> None:
+def test__review__given_a_feasible_plan__sends_no_notification() -> None:
     # Arrange
-    # spec=Pager makes the mock accept only the calls a Pager has: a typo such
-    # as pager.pgae(...) fails instead of being silently recorded.
-    pager = Mock(spec=Pager)
-    planner = NightlyPlanner(pager)
+    # spec=Notifier makes the mock accept only the calls a Notifier has: a typo such
+    # as notifier.notfiy(...) fails instead of being silently recorded.
+    notifier = Mock(spec=Notifier)
+    planner = NightlyPlanner(notifier)
     result = SolveResult(instance_id="2026-09-26", status=SolveStatus.FEASIBLE)
 
     # Act
     planner.review(result)
 
     # Assert
-    pager.page.assert_not_called()
+    notifier.notify.assert_not_called()
 
 
 # =============================================================================
-# Your tests: use Mock(spec=Pager), then delete the skip line.
+# Your tests: use Mock(spec=Notifier), then delete the skip line.
 # =============================================================================
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
-def test__review__given_the_time_limit_ran_out__pages_once_with_the_time_limit_message() -> None:
+def test__review__given_the_time_limit_ran_out__notifies_once_with_the_time_limit_message() -> None:
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
-def test__review__given_an_optimal_plan__sends_no_page() -> None:
+def test__review__given_an_optimal_plan__sends_no_notification() -> None:
     pass
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
-def test__review__given_another_instance__names_that_instance_in_the_page() -> None:
+def test__review__given_another_instance__names_that_instance_in_the_notification() -> None:
     pass

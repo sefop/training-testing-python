@@ -1,4 +1,4 @@
-# Exercise 2: test-driven development. See README.md in this folder for the instructions.
+# Test-driven development exercise. See README.md in this folder for the instructions.
 #
 # The scalar part of LinearExpression is already built, test-first, exactly as in the
 # book's worked example: an empty expression, an expression with a scalar, and

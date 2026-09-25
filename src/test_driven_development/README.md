@@ -1,4 +1,4 @@
-# Exercise 2: test-driven development (Python)
+# Test-driven development (Python)
 
 The theory, and the worked example this exercise continues, are in the training hub:
 [Test-driven development](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#ch-tdd).

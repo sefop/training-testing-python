@@ -1,7 +1,7 @@
-# Exercise 1: unit tests and coverage (Python)
+# Unit tests and coverage (Python)
 
 The theory, and the reasoning behind this exercise, are in the training hub:
-[Exercise 1: a calculator](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#exercise-1-a-calculator).
+[Exercise: a calculator](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#exercise-a-calculator).
 This page only covers what's specific to Python.
 
 The exercise has two parts:
@@ -198,7 +198,7 @@ protects nothing, so a refactor could break `divide` without any warning.
 5. **Optional challenge.** In `divide`, call the helper for `a` only and remove the call for `b`. Run the
    tests. Did anything fail? If not, your Part A tests never tried an invalid *divisor*. The promise is
    broken and nobody noticed. Add that case to your test, watch it fail, then put the call back.
-   Asking "would my tests catch this bug?" is exactly what exercise 3 (mutation testing) automates.
+   Asking "would my tests catch this bug?" is exactly what the mutation testing exercise automates.
 
 ### What you learned
 

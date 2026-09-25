@@ -35,8 +35,9 @@ pytest
 
 ## Exercises
 
-1. Unit tests and code coverage: [`src/unit_tests_and_coverage`](src/unit_tests_and_coverage/README.md)
-2. Test-driven development: [`src/test_driven_development`](src/test_driven_development/README.md)
-3. Mocks: [`src/mocks`](src/mocks/README.md)
+- Unit tests and code coverage: [`src/unit_tests_and_coverage`](src/unit_tests_and_coverage/README.md)
+- Test-driven development: [`src/test_driven_development`](src/test_driven_development/README.md)
+- Mocks: [`src/mocks`](src/mocks/README.md)
+- Integration testing: [`src/integration_testing`](src/integration_testing/README.md)
 
 Check out the [exercises](exercises) folder for the instructions of the other exercises.

@@ -74,7 +74,7 @@ reliability rather than detection. Those four situations catch this particular s
 sensitive to it, not because anyone picked them with it in mind — a different modeling error can slip past all
 thirteen hand-chosen instances while a sweep across generated ones still finds it. Undo the swap when you are done.
 Deliberately breaking code to find out whether the tests notice is the subject of
-[exercise 3, mutation testing](../3-mutation-testing/instructions.md).
+[the mutation testing exercise](../3-mutation-testing/instructions.md).
 
 ## Your turn: shortest path
 

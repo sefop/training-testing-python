@@ -1,1 +1,1 @@
-"""Exercise 2: test-driven development. See README.md in this folder for the instructions."""
+"""Test-driven development exercise. See README.md in this folder for the instructions."""
