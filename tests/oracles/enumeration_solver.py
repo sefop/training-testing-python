@@ -7,6 +7,9 @@ step can be checked by reading it. It lives with the tests because nothing in th
 
 from __future__ import annotations
 
+import itertools
+import math
+
 from oracles.cargo import Instance, Solution
 
 
@@ -20,10 +23,31 @@ class EnumerationSolver:
         m_i = floor(min(W / w_i, V / v_i)) pallets, and at least its committed pallets, so the
         candidate loads are every combination of counts between those two bounds.
 
-        Part 1 of the exercise: implement this method. itertools.product lists every combination
-        of counts; keep the feasible one with the most revenue.
-
         Raises:
             ValueError: if instance is None.
         """
-        raise NotImplementedError("Exercise: implement me")
+        if instance is None:
+            raise ValueError("instance must not be None")
+        products = instance.products
+        counts_per_product = []
+        for product in products:
+            most = math.floor(
+                min(instance.weight_capacity / product.weight, instance.volume_capacity / product.volume)
+            )
+            counts_per_product.append(range(product.committed_quantity, most + 1))
+
+        best = None
+        for counts in itertools.product(*counts_per_product):
+            total_weight = sum(product.weight * count for product, count in zip(products, counts))
+            total_volume = sum(product.volume * count for product, count in zip(products, counts))
+            if total_weight > instance.weight_capacity or total_volume > instance.volume_capacity:
+                continue
+            revenue = sum(product.revenue * count for product, count in zip(products, counts))
+            if best is None or revenue > best.objective_value:
+                best = Solution(
+                    picked={product.name: count for product, count in zip(products, counts)},
+                    objective_value=revenue,
+                    total_weight=total_weight,
+                    total_volume=total_volume,
+                )
+        return best
