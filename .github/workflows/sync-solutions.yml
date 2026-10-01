@@ -1,0 +1,48 @@
+name: Sync solutions
+
+# The solutions branch is main plus the finished tests of the exercises. Every push to main merges
+# main into solutions, runs the whole suite there, and pushes the result, so solutions never falls
+# behind. The job fails, and pushes nothing, when the merge conflicts or a finished test breaks:
+# both mean a change on main needs a matching change on solutions.
+on:
+  push:
+    branches: [main]
+
+# contents:write lets the job push the merged solutions branch.
+permissions:
+  contents: write
+
+# Two pushes to main in quick succession must not merge into solutions at the same time.
+concurrency:
+  group: sync-solutions
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      # fetch-depth 0 fetches the whole history, which git merge needs to find the common ancestor.
+      - uses: actions/checkout@v4
+        with:
+          ref: solutions
+          fetch-depth: 0
+
+      - name: Merge main into solutions
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --no-edit origin/main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests on solutions
+        run: pytest -v
+
+      - name: Push solutions
+        run: git push origin solutions

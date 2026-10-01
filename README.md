@@ -39,5 +39,10 @@ pytest
 - Test-driven development: [`src/test_driven_development`](src/test_driven_development/README.md)
 - Mocks: [`src/mocks`](src/mocks/README.md)
 - Integration testing: [`src/integration_testing`](src/integration_testing/README.md)
+- Test oracles: [`src/oracles`](src/oracles/README.md)
+
+Stuck on the test oracles exercise? The
+[`solutions`](https://github.com/sefop/training-testing-python/tree/solutions) branch holds its tests
+finished. Try first: the exercise is in writing them.
 
 Check out the [exercises](exercises) folder for the instructions of the other exercises.
