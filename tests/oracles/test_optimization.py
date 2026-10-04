@@ -13,7 +13,8 @@ The file has three parts:
 - Part 2: every remaining example test of the book's contract.
 
 Test names follow test__method__given_condition__expected_outcome, so a failing test reports in
-plain words which promise was broken. Revenues and totals are compared with pytest.approx, because
+plain words which promise was broken. run returns a Result: check its status, then read the load
+from result.solution. Revenues and totals are compared with pytest.approx, because
 the model computes with floating-point numbers.
 """
 
@@ -22,7 +23,7 @@ import random
 import pytest
 from enumeration_solver import EnumerationSolver
 
-from oracles.cargo import Instance, Optimization, Product, Solution
+from oracles.cargo import Instance, Optimization, Product, Solution, Status
 
 
 def assert_valid_solution(instance: Instance, solution: Solution) -> None:
@@ -69,11 +70,11 @@ def test__run__given_the_two_pallet_instance__loads_the_higher_revenue_pallet() 
     instance = Instance(products=[a, b], weight_capacity=2, volume_capacity=2)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.objective_value == pytest.approx(10)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.objective_value == pytest.approx(10)
 
 
 def test__run__given_random_small_instances__agrees_with_enumeration() -> None:
@@ -99,9 +100,11 @@ def test__run__given_random_small_instances__agrees_with_enumeration() -> None:
         candidate = Optimization().run(instance)
 
         # Assert
-        assert (candidate is None) == (reference is None), f"feasibility differs on {instance}"
-        if reference is not None:
-            assert candidate.objective_value == pytest.approx(reference.objective_value), f"on {instance}"
+        assert candidate.status == reference.status, f"status differs on {instance}"
+        if reference.status == Status.OPTIMAL:
+            assert candidate.solution.objective_value == pytest.approx(
+                reference.solution.objective_value
+            ), f"on {instance}"
 
 
 def test__run__given_a_higher_payload_capacity__does_not_lower_the_revenue() -> None:
@@ -114,8 +117,10 @@ def test__run__given_a_higher_payload_capacity__does_not_lower_the_revenue() -> 
     before = Optimization().run(before_instance)
     after = Optimization().run(after_instance)
 
-    # Assert
-    assert after.objective_value >= before.objective_value
+    # Assert: the relation is a promise of the status OPTIMAL, so check the status first.
+    assert before.status == Status.OPTIMAL
+    assert after.status == Status.OPTIMAL
+    assert after.solution.objective_value >= before.solution.objective_value
 
 
 # =============================================================================
@@ -124,29 +129,30 @@ def test__run__given_a_higher_payload_capacity__does_not_lower_the_revenue() -> 
 
 
 def test__run__given_a_feasible_instance__returns_a_valid_solution() -> None:
-    """Behavior 1, valid solution. Oracle: the constraint definition (assert_valid_solution)."""
+    """Behavior 1, valid result.solution. Oracle: the constraint definition (assert_valid_solution)."""
     # Arrange
     instance = three_products(weight_capacity=8, committed_c=1)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert_valid_solution(instance, solution)
+    assert result.status == Status.OPTIMAL
+    assert_valid_solution(instance, result.solution)
 
 
-def test__run__given_committed_pallets_heavier_than_the_payload__returns_none() -> None:
+def test__run__given_committed_pallets_heavier_than_the_payload__returns_infeasible() -> None:
     """Behavior 2, no solution from an empty feasible set. Oracle: known (one sum)."""
     # Arrange: two committed pallets of one tonne each, and the aircraft may carry one tonne.
     mail = Product(name="M", weight=1, volume=1, revenue=4, committed_quantity=2)
     instance = Instance(products=[mail], weight_capacity=1, volume_capacity=5)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is None
+    assert result.status == Status.INFEASIBLE
+    assert result.solution is None
 
 
 def test__run__given_committed_pallets_that_fill_the_payload_exactly__loads_only_the_committed_pallets() -> None:
@@ -157,12 +163,12 @@ def test__run__given_committed_pallets_that_fill_the_payload_exactly__loads_only
     instance = Instance(products=[mail, gold], weight_capacity=2, volume_capacity=5)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"M": 2, "G": 0}
-    assert solution.objective_value == pytest.approx(8)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"M": 2, "G": 0}
+    assert result.solution.objective_value == pytest.approx(8)
 
 
 def test__run__given_the_products_in_reverse_order__earns_the_same_revenue() -> None:
@@ -180,7 +186,7 @@ def test__run__given_the_products_in_reverse_order__earns_the_same_revenue() -> 
     second = Optimization().run(reversed_instance)
 
     # Assert
-    assert second.objective_value == pytest.approx(first.objective_value)
+    assert second.solution.objective_value == pytest.approx(first.solution.objective_value)
 
 
 def test__run__given_every_revenue_multiplied_by_k__multiplies_the_revenue_by_k() -> None:
@@ -201,7 +207,7 @@ def test__run__given_every_revenue_multiplied_by_k__multiplies_the_revenue_by_k(
     second = Optimization().run(scaled)
 
     # Assert
-    assert second.objective_value == pytest.approx(k * first.objective_value)
+    assert second.solution.objective_value == pytest.approx(k * first.solution.objective_value)
 
 
 def test__run__given_a_new_uncommitted_product__does_not_lower_the_revenue() -> None:
@@ -219,7 +225,7 @@ def test__run__given_a_new_uncommitted_product__does_not_lower_the_revenue() -> 
     second = Optimization().run(extended)
 
     # Assert
-    assert second.objective_value >= first.objective_value
+    assert second.solution.objective_value >= first.solution.objective_value
 
 
 def test__run__given_the_first_runs_pallets_committed__earns_the_same_revenue() -> None:
@@ -229,7 +235,7 @@ def test__run__given_the_first_runs_pallets_committed__earns_the_same_revenue() 
     first = Optimization().run(instance)
     committed = Instance(
         products=[
-            Product(p.name, p.weight, p.volume, p.revenue, first.picked[p.name]) for p in instance.products
+            Product(p.name, p.weight, p.volume, p.revenue, first.solution.picked[p.name]) for p in instance.products
         ],
         weight_capacity=instance.weight_capacity,
         volume_capacity=instance.volume_capacity,
@@ -239,8 +245,8 @@ def test__run__given_the_first_runs_pallets_committed__earns_the_same_revenue() 
     second = Optimization().run(committed)
 
     # Assert
-    assert second is not None
-    assert second.objective_value == pytest.approx(first.objective_value)
+    assert second.status == Status.OPTIMAL
+    assert second.solution.objective_value == pytest.approx(first.solution.objective_value)
 
 
 def test__enumeration_solver__given_the_two_pallet_instance__finds_the_known_optimum() -> None:
@@ -251,11 +257,11 @@ def test__enumeration_solver__given_the_two_pallet_instance__finds_the_known_opt
     instance = Instance(products=[a, b], weight_capacity=2, volume_capacity=2)
 
     # Act
-    solution = EnumerationSolver().run(instance)
+    result = EnumerationSolver().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.objective_value == pytest.approx(10)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.objective_value == pytest.approx(10)
 
 
 # =============================================================================
@@ -263,17 +269,18 @@ def test__enumeration_solver__given_the_two_pallet_instance__finds_the_known_opt
 # =============================================================================
 
 
-def test__run__given_committed_pallets_bulkier_than_the_hold__returns_none() -> None:
+def test__run__given_committed_pallets_bulkier_than_the_hold__returns_infeasible() -> None:
     """Behavior 2. Oracle: known (one sum)."""
     # Arrange: two committed pallets of 3 cubic meters each, and the hold takes 5.
     mail = Product(name="M", weight=1, volume=3, revenue=4, committed_quantity=2)
     instance = Instance(products=[mail], weight_capacity=10, volume_capacity=5)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is None
+    assert result.status == Status.INFEASIBLE
+    assert result.solution is None
 
 
 def test__run__given_no_products__returns_an_empty_load_worth_zero() -> None:
@@ -282,12 +289,12 @@ def test__run__given_no_products__returns_an_empty_load_worth_zero() -> None:
     instance = Instance(products=[], weight_capacity=5, volume_capacity=4)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {}
-    assert solution.objective_value == pytest.approx(0)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {}
+    assert result.solution.objective_value == pytest.approx(0)
 
 
 def test__run__given_no_product_fits_on_its_own__returns_an_empty_load_worth_zero() -> None:
@@ -298,12 +305,12 @@ def test__run__given_no_product_fits_on_its_own__returns_an_empty_load_worth_zer
     instance = Instance(products=[a, b], weight_capacity=2, volume_capacity=4)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"A": 0, "B": 0}
-    assert solution.objective_value == pytest.approx(0)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"A": 0, "B": 0}
+    assert result.solution.objective_value == pytest.approx(0)
 
 
 def test__run__given_one_product_that_fits_several_times__loads_as_many_pallets_as_fit() -> None:
@@ -313,12 +320,12 @@ def test__run__given_one_product_that_fits_several_times__loads_as_many_pallets_
     instance = Instance(products=[p], weight_capacity=7, volume_capacity=10)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"P": 3}
-    assert solution.objective_value == pytest.approx(15)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"P": 3}
+    assert result.solution.objective_value == pytest.approx(15)
 
 
 def test__run__given_an_optimum_that_fills_only_the_payload__returns_that_load() -> None:
@@ -329,13 +336,13 @@ def test__run__given_an_optimum_that_fills_only_the_payload__returns_that_load()
     instance = Instance(products=[a, b], weight_capacity=4, volume_capacity=5)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"A": 2, "B": 0}
-    assert solution.total_weight == pytest.approx(4)
-    assert solution.total_volume < 5
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"A": 2, "B": 0}
+    assert result.solution.total_weight == pytest.approx(4)
+    assert result.solution.total_volume < 5
 
 
 def test__run__given_an_optimum_that_fills_only_the_hold__returns_that_load() -> None:
@@ -346,13 +353,13 @@ def test__run__given_an_optimum_that_fills_only_the_hold__returns_that_load() ->
     instance = Instance(products=[a, b], weight_capacity=5, volume_capacity=4)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"A": 2, "B": 0}
-    assert solution.total_volume == pytest.approx(4)
-    assert solution.total_weight < 5
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"A": 2, "B": 0}
+    assert result.solution.total_volume == pytest.approx(4)
+    assert result.solution.total_weight < 5
 
 
 def test__run__given_an_optimum_that_fills_both_capacities__returns_that_load() -> None:
@@ -363,13 +370,13 @@ def test__run__given_an_optimum_that_fills_both_capacities__returns_that_load() 
     instance = Instance(products=[a, b], weight_capacity=4, volume_capacity=5)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"A": 1, "B": 2}
-    assert solution.total_weight == pytest.approx(4)
-    assert solution.total_volume == pytest.approx(5)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"A": 1, "B": 2}
+    assert result.solution.total_weight == pytest.approx(4)
+    assert result.solution.total_volume == pytest.approx(5)
 
 
 def test__run__given_two_tied_pallets_that_do_not_fit_together__earns_the_tied_revenue() -> None:
@@ -380,11 +387,11 @@ def test__run__given_two_tied_pallets_that_do_not_fit_together__earns_the_tied_r
     instance = Instance(products=[a, b], weight_capacity=2, volume_capacity=2)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.objective_value == pytest.approx(5)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.objective_value == pytest.approx(5)
 
 
 def test__run__given_an_uncommitted_product_too_heavy_to_fly__leaves_it_behind() -> None:
@@ -396,12 +403,12 @@ def test__run__given_an_uncommitted_product_too_heavy_to_fly__leaves_it_behind()
     instance = Instance(products=[a, b, heavy], weight_capacity=2, volume_capacity=2)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.picked == {"A": 1, "B": 0, "H": 0}
-    assert solution.objective_value == pytest.approx(10)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.picked == {"A": 1, "B": 0, "H": 0}
+    assert result.solution.objective_value == pytest.approx(10)
 
 
 def test__run__given_one_revenue_raised__does_not_lower_the_revenue() -> None:
@@ -420,7 +427,7 @@ def test__run__given_one_revenue_raised__does_not_lower_the_revenue() -> None:
     second = Optimization().run(raised)
 
     # Assert
-    assert second.objective_value >= first.objective_value
+    assert second.solution.objective_value >= first.solution.objective_value
 
 
 def test__run__given_several_revenues_raised__does_not_lower_the_revenue() -> None:
@@ -443,7 +450,7 @@ def test__run__given_several_revenues_raised__does_not_lower_the_revenue() -> No
     second = Optimization().run(raised)
 
     # Assert
-    assert second.objective_value >= first.objective_value
+    assert second.solution.objective_value >= first.solution.objective_value
 
 
 def test__run__given_a_higher_hold_capacity__does_not_lower_the_revenue() -> None:
@@ -453,7 +460,7 @@ def test__run__given_a_higher_hold_capacity__does_not_lower_the_revenue() -> Non
     second = Optimization().run(three_products(volume_capacity=6))
 
     # Assert
-    assert second.objective_value >= first.objective_value
+    assert second.solution.objective_value >= first.solution.objective_value
 
 
 def test__run__given_a_committed_pallet_released__does_not_lower_the_revenue() -> None:
@@ -463,7 +470,7 @@ def test__run__given_a_committed_pallet_released__does_not_lower_the_revenue() -
     second = Optimization().run(three_products(committed_c=0))
 
     # Assert
-    assert second.objective_value >= first.objective_value
+    assert second.solution.objective_value >= first.solution.objective_value
 
 
 def test__run__given_a_lower_payload_capacity__does_not_raise_the_revenue() -> None:
@@ -473,8 +480,8 @@ def test__run__given_a_lower_payload_capacity__does_not_raise_the_revenue() -> N
     second = Optimization().run(three_products(weight_capacity=4))
 
     # Assert
-    assert second is not None
-    assert second.objective_value <= first.objective_value
+    assert second.status == Status.OPTIMAL
+    assert second.solution.objective_value <= first.solution.objective_value
 
 
 def test__run__given_a_lower_hold_capacity__does_not_raise_the_revenue() -> None:
@@ -484,8 +491,8 @@ def test__run__given_a_lower_hold_capacity__does_not_raise_the_revenue() -> None
     second = Optimization().run(three_products(volume_capacity=3))
 
     # Assert
-    assert second is not None
-    assert second.objective_value <= first.objective_value
+    assert second.status == Status.OPTIMAL
+    assert second.solution.objective_value <= first.solution.objective_value
 
 
 def test__run__given_an_uncommitted_product_removed__does_not_raise_the_revenue() -> None:
@@ -502,7 +509,7 @@ def test__run__given_an_uncommitted_product_removed__does_not_raise_the_revenue(
     second = Optimization().run(without_b)
 
     # Assert
-    assert second.objective_value <= first.objective_value
+    assert second.solution.objective_value <= first.solution.objective_value
 
 
 def test__run__given_one_more_committed_pallet__does_not_raise_the_revenue() -> None:
@@ -512,5 +519,5 @@ def test__run__given_one_more_committed_pallet__does_not_raise_the_revenue() -> 
     second = Optimization().run(three_products(committed_c=1))
 
     # Assert
-    assert second is not None
-    assert second.objective_value <= first.objective_value
+    assert second.status == Status.OPTIMAL
+    assert second.solution.objective_value <= first.solution.objective_value
