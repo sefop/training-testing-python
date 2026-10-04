@@ -14,7 +14,8 @@ The file has three parts:
 - Part 2: every remaining example test of the book's contract.
 
 Test names follow test__method__given_condition__expected_outcome, so a failing test reports in
-plain words which promise was broken. Revenues and totals are compared with pytest.approx, because
+plain words which promise was broken. run returns a Result: check its status, then read the load
+from result.solution. Revenues and totals are compared with pytest.approx, because
 the model computes with floating-point numbers.
 """
 
@@ -23,7 +24,7 @@ import random
 import pytest
 from enumeration_solver import EnumerationSolver
 
-from oracles.cargo import Instance, Optimization, Product, Solution
+from oracles.cargo import Instance, Optimization, Product, Solution, Status
 
 
 def assert_valid_solution(instance: Instance, solution: Solution) -> None:
@@ -59,11 +60,11 @@ def test__run__given_the_two_pallet_instance__loads_the_higher_revenue_pallet() 
     instance = Instance(products=[a, b], weight_capacity=2, volume_capacity=2)
 
     # Act
-    solution = Optimization().run(instance)
+    result = Optimization().run(instance)
 
     # Assert
-    assert solution is not None
-    assert solution.objective_value == pytest.approx(10)
+    assert result.status == Status.OPTIMAL
+    assert result.solution.objective_value == pytest.approx(10)
 
 
 @pytest.mark.skip(reason="Part 1: implement EnumerationSolver, then delete this line")
@@ -90,9 +91,11 @@ def test__run__given_random_small_instances__agrees_with_enumeration() -> None:
         candidate = Optimization().run(instance)
 
         # Assert
-        assert (candidate is None) == (reference is None), f"feasibility differs on {instance}"
-        if reference is not None:
-            assert candidate.objective_value == pytest.approx(reference.objective_value), f"on {instance}"
+        assert candidate.status == reference.status, f"status differs on {instance}"
+        if reference.status == Status.OPTIMAL:
+            assert candidate.solution.objective_value == pytest.approx(
+                reference.solution.objective_value
+            ), f"on {instance}"
 
 
 def test__run__given_a_higher_payload_capacity__does_not_lower_the_revenue() -> None:
@@ -105,8 +108,10 @@ def test__run__given_a_higher_payload_capacity__does_not_lower_the_revenue() -> 
     before = Optimization().run(before_instance)
     after = Optimization().run(after_instance)
 
-    # Assert
-    assert after.objective_value >= before.objective_value
+    # Assert: the relation is a promise of the status OPTIMAL, so check the status first.
+    assert before.status == Status.OPTIMAL
+    assert after.status == Status.OPTIMAL
+    assert after.solution.objective_value >= before.solution.objective_value
 
 
 # =============================================================================
@@ -121,7 +126,7 @@ def test__run__given_a_feasible_instance__returns_a_valid_solution() -> None:
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
-def test__run__given_committed_pallets_heavier_than_the_payload__returns_none() -> None:
+def test__run__given_committed_pallets_heavier_than_the_payload__returns_infeasible() -> None:
     """Behavior 2, no solution from an empty feasible set. Oracle: known (one sum)."""
     pass
 
@@ -168,7 +173,7 @@ def test__enumeration_solver__given_the_two_pallet_instance__finds_the_known_opt
 
 
 @pytest.mark.skip(reason="Exercise: implement me")
-def test__run__given_committed_pallets_bulkier_than_the_hold__returns_none() -> None:
+def test__run__given_committed_pallets_bulkier_than_the_hold__returns_infeasible() -> None:
     """Behavior 2. Oracle: known (one sum)."""
     pass
 
