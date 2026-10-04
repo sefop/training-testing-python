@@ -10,10 +10,15 @@ This page only covers what's specific to Python.
 
 - [`cargo.py`](cargo.py) is the code under test: the cargo loading model of the book, solved with
   OR-Tools. It's complete: you only write tests (and one pseudo-oracle). `Optimization().run(instance)`
-  returns the load with the most revenue, or `None` when no load respects both capacities. Its docstring
-  is the contract, with the seven promises numbered as in the book.
+  returns a `Result`: a `status` (`Status.OPTIMAL`, `FEASIBLE`, `INFEASIBLE` or `NOT_FOUND`) and, when the
+  status is `OPTIMAL` or `FEASIBLE`, a `solution` holding the load. This implementation solves the model
+  to proven optimality, so you will meet `OPTIMAL` when a load respects both capacities and `INFEASIBLE`
+  when none does. Its docstring is the contract, with the seven promises numbered as in the book. The
+  contract itself is defined in the design section, in
+  [Contracts](https://github.com/sefop/sefop-training-hub/blob/main/book/04-design/README.md#ch-contracts).
 - [`enumeration_solver.py`](../../tests/oracles/enumeration_solver.py) is a pseudo-oracle waiting to be
-  written: a second implementation of the same contract that tries every candidate load.
+  written: a second implementation of the same contract that tries every candidate load, so it returns
+  `OPTIMAL` or `INFEASIBLE` and nothing else.
 - [`test_optimization.py`](../../tests/oracles/test_optimization.py) holds:
   - the book's three tests, finished, one per oracle: the two-pallet test (known oracle), the differential
     sweep (pseudo-oracle) and the capacity relation test (metamorphic relation). The sweep is skipped until
@@ -25,7 +30,7 @@ This page only covers what's specific to Python.
 
 ## Part 1: one test per promise
 
-1. Write `assert_valid_solution(instance, solution)`: every quantity is a whole number, every committed
+1. Write `assert_valid_solution(instance, solution)`, which takes the `solution` of a `Result`: every quantity is a whole number, every committed
    pallet is loaded, both capacities hold, and the reported revenue and totals match the load.
 2. For each empty test in Part 1, write the body with the Arrange / Act / Assert layout of the finished
    tests, then delete its `@pytest.mark.skip(reason="Exercise: implement me")` line.
@@ -72,7 +77,7 @@ solver. You only need to read `cargo.py`, not change it, but these are the piece
 | $x_i \in \mathbb{Z}$, $x_i \ge l_i$ | `solver.IntVar(lower_bound, math.inf, name)` |
 | $\sum_i w_i x_i \le W$ | `solver.Add(solver.Sum(terms) <= capacity)` |
 | $\max \sum_i r_i x_i$ | `solver.Maximize(solver.Sum(terms))` |
-| solve, and check a load was found | `solver.Solve() == pywraplp.Solver.OPTIMAL` |
+| solve, and read what was established | `solver.Solve()` returns `OPTIMAL`, `FEASIBLE`, `INFEASIBLE` or `NOT_SOLVED` |
 | the value of $x_i$ | `variable.solution_value()` |
 
 Two things catch people out:
