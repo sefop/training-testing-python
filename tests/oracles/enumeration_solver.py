@@ -10,24 +10,26 @@ from __future__ import annotations
 import itertools
 import math
 
-from oracles.cargo import Instance, Solution
+from oracles.cargo import Instance, InvalidInstance, Result, Solution, Status
 
 
 class EnumerationSolver:
     """Finds the load with the most revenue by trying every candidate load."""
 
-    def run(self, instance: Instance) -> Solution | None:
-        """Returns the load with the most revenue, or None when no load respects both capacities.
+    def run(self, instance: Instance) -> Result:
+        """Returns the load with the most revenue and the status OPTIMAL, or the status INFEASIBLE.
 
-        Same contract as Optimization.run. Product i can load at most
+        Same contract as Optimization.run. Trying every candidate load is a proof, so the status is
+        OPTIMAL when a load respects both capacities and INFEASIBLE when none does, and never
+        FEASIBLE or NOT_FOUND. Product i can load at most
         m_i = floor(min(W / w_i, V / v_i)) pallets, and at least its committed pallets, so the
         candidate loads are every combination of counts between those two bounds.
 
         Raises:
-            ValueError: if instance is None.
+            InvalidInstance: if instance is None.
         """
         if instance is None:
-            raise ValueError("instance must not be None")
+            raise InvalidInstance("instance must not be None")
         products = instance.products
         counts_per_product = []
         for product in products:
@@ -50,4 +52,6 @@ class EnumerationSolver:
                     total_weight=total_weight,
                     total_volume=total_volume,
                 )
-        return best
+        if best is None:
+            return Result(Status.INFEASIBLE)
+        return Result(Status.OPTIMAL, best)
