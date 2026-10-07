@@ -1,0 +1,41 @@
+{
+  "baseline_revision": "4a1a8946b726e174f0c27ac33b9f7d41810c106a",
+  "instances": [
+    {
+      "id": "unique-optimum",
+      "expected_calories": 6400,
+      "request": {
+        "maxBudgetUsd": 64,
+        "maxWeightKg": 64,
+        "products": [
+          {"name": "apple", "priceUsd": 1, "weightKg": 1, "calories": 100},
+          {"name": "chocolate", "priceUsd": 2, "weightKg": 2, "calories": 50}
+        ]
+      }
+    },
+    {
+      "id": "tied-optimum",
+      "expected_calories": 6400,
+      "request": {
+        "maxBudgetUsd": 64,
+        "maxWeightKg": 64,
+        "products": [
+          {"name": "apple", "priceUsd": 1, "weightKg": 1, "calories": 100},
+          {"name": "pear", "priceUsd": 1, "weightKg": 1, "calories": 100}
+        ]
+      }
+    },
+    {
+      "id": "capacity-sensitive",
+      "expected_calories": 7900,
+      "request": {
+        "maxBudgetUsd": 64,
+        "maxWeightKg": 64,
+        "products": [
+          {"name": "apple", "priceUsd": 1, "weightKg": 2, "calories": 200},
+          {"name": "pear", "priceUsd": 2, "weightKg": 1, "calories": 175}
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+diff --git a/src/startup.py b/src/startup.py
+--- a/src/startup.py
++++ b/src/startup.py
+@@ -75,11 +75,11 @@
+     Attributes:
+         solver_name: Solver technology passed to the MIP SolutionProvider.
+             Read from the SOLVER_NAME environment variable (falling back to
+-            "google_scip") so the Docker image can select a solver without a
++            "highs") so the Docker image can select a solver without a
+             code change.
+     """
+ 
+-    solver_name: str = field(default_factory=lambda: os.environ.get("SOLVER_NAME", "google_scip"))
++    solver_name: str = field(default_factory=lambda: os.environ.get("SOLVER_NAME", "highs"))
+ 
+ 
+ def build_mip_solution_provider(settings: Settings) -> SolutionProvider:

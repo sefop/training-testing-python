@@ -1,0 +1,54 @@
+# Copy this supplied workflow into the learner's application fork.
+# The four reusable workflows are already present in the documented baseline.
+name: CD - Assessed release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Serialize hook calls; every call still explicitly names its checked commit.
+concurrency:
+  group: assessed-release-main
+  cancel-in-progress: false
+
+jobs:
+  code-style:
+    uses: ./.github/workflows/ci-code-style.yml
+    with:
+      concurrency-suffix: cd-deploy
+  unit-tests:
+    uses: ./.github/workflows/ci-unit-tests.yml
+    with:
+      concurrency-suffix: cd-deploy
+  integration-tests:
+    uses: ./.github/workflows/ci-integration-tests.yml
+    with:
+      concurrency-suffix: cd-deploy
+  docker-build:
+    uses: ./.github/workflows/ci-docker-build.yml
+    with:
+      concurrency-suffix: cd-deploy
+  deploy:
+    needs: [code-style, unit-tests, integration-tests, docker-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request deployment of the checked commit
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          CHECKED_COMMIT: ${{ github.sha }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Configure RENDER_DEPLOY_HOOK_URL in this fork before releasing."
+            exit 1
+          fi
+          # A deploy hook already has a key query parameter. Keep it secret;
+          # never echo the URL or curl's response body into the workflow log.
+          if ! curl --silent --fail --output /dev/null --request POST \
+            "${RENDER_DEPLOY_HOOK_URL}&ref=${CHECKED_COMMIT}"; then
+            echo "Render rejected the deployment request. Check the secret and service."
+            exit 1
+          fi
+          echo "Deployment requested for ${CHECKED_COMMIT}; verify completion in Render."

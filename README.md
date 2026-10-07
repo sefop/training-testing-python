@@ -40,6 +40,7 @@ pytest
 - Mocks: [`src/mocks`](src/mocks/README.md)
 - Integration testing: [`src/integration_testing`](src/integration_testing/README.md)
 - Test oracles: [`src/oracles`](src/oracles/README.md)
+- Release a new model safely: [`src/safe_release`](src/safe_release/README.md)
 
 Stuck on the test oracles exercise? The
 [`solutions`](https://github.com/sefop/training-testing-python/tree/solutions) branch holds its tests
