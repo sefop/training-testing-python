@@ -1,7 +1,7 @@
 # Mocks (Python)
 
-The theory, and the worked example this exercise starts from, are in the training hub:
-[Mocks](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#ch-mocks).
+The theory, and the worked example this exercise starts from, are in the book:
+[Mocks](https://github.com/sefop/sefop-training-hub/blob/main/book/04-testing/README.md#ch-mocks).
 This page only covers what's specific to Python.
 
 ## The starting point

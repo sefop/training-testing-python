@@ -1,7 +1,7 @@
 # Unit tests and coverage (Python)
 
-The theory, and the reasoning behind this exercise, are in the training hub:
-[Exercise: a calculator](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#exercise-a-calculator).
+The theory, and the reasoning behind this exercise, are in the book:
+[3. Unit testing](https://github.com/sefop/sefop-training-hub/blob/main/book/04-testing/README.md#ch-unit-testing).
 This page only covers what's specific to Python.
 
 The exercise has two parts:
