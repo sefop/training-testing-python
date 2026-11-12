@@ -1,9 +1,9 @@
 # Oracles (Python)
 
-The theory, and the three worked tests this exercise starts from, are in the training hub:
-[Test oracles](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#ch-oracles).
+The theory, and the three worked tests this exercise starts from, are in the book:
+[Test oracles](https://github.com/sefop/sefop-training-hub/blob/main/book/04-testing/README.md#ch-oracles).
 The promises you test are listed, with example tests for each, in
-[The optimization contract](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#model-contract).
+[The optimization contract](https://github.com/sefop/sefop-training-hub/blob/main/book/04-testing/README.md#model-contract).
 This page only covers what's specific to Python.
 
 ## The starting point

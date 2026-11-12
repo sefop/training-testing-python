@@ -1,7 +1,7 @@
 # Integration testing (Python)
 
-The theory, and the worked example this exercise starts from, are in the training hub:
-[Integration testing](https://github.com/sefop/sefop-training-hub/blob/main/book/05-testing/README.md#ch-integration).
+The theory, and the worked example this exercise starts from, are in the book:
+[Integration testing](https://github.com/sefop/sefop-training-hub/blob/main/book/04-testing/README.md#ch-integration).
 This page only covers what's specific to Python.
 
 ## The starting point

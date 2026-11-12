@@ -1,7 +1,7 @@
 # Release a new model safely (Python)
 
-The theory is [6. Release a new model safely](https://github.com/sefop/sefop-training-hub/blob/main/book/06-deployment/README.md#ch-safe-release).
-For packaging, read [4. Package the model with its solver](https://github.com/sefop/sefop-training-hub/blob/main/book/06-deployment/README.md#ch-packaging).
+The theory is [6. Release a new model safely](https://github.com/sefop/sefop-training-hub/blob/main/book/05-deployment/README.md#ch-safe-release).
+For packaging, read [4. Package the model with its solver](https://github.com/sefop/sefop-training-hub/blob/main/book/05-deployment/README.md#ch-packaging).
 
 Deploy a working decision-support system, assess a supplied solver change, release it after checks
 pass, and restore the baseline. The application maximizes calories within budget and weight limits.
